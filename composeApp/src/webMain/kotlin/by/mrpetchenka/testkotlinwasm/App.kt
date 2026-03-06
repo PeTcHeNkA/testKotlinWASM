@@ -64,12 +64,14 @@ fun App() {
                         .height(60.dp)
                         .width(220.dp)
                         .clickable { active = !active }
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.horizontalGradient(
-                                listOf(Color.Cyan, Color.Magenta, Color.Cyan)
-                            )
-                        ),
+                        .drawBehind {
+                            val strokeWidth = 2f
+                            val brush = Brush.horizontalGradient(listOf(Color.Cyan, Color.Magenta, Color.Cyan))
+                            drawLine(brush, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth) // Top
+                            drawLine(brush, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth) // Right
+                            drawLine(brush, Offset(size.width, size.height), Offset(0f, size.height), strokeWidth) // Bottom
+                            drawLine(brush, Offset(0f, size.height), Offset(0f, 0f), strokeWidth) // Left
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
