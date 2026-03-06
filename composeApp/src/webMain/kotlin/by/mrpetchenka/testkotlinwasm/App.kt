@@ -5,16 +5,14 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -32,7 +30,6 @@ import testkotlinwasm.composeapp.generated.resources.compose_multiplatform
 fun App() {
     var active by remember { mutableStateOf(false) }
     
-    // Glitch animation states
     val infiniteTransition = rememberInfiniteTransition(label = "glitch")
     val glitchOffset by infiniteTransition.animateFloat(
         initialValue = -2f,
@@ -40,18 +37,16 @@ fun App() {
         animationSpec = infiniteRepeatable(
             animation = tween(50, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        ),
-        label = "glitchOffset"
+        )
     )
 
     MaterialTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF050505)), // Absolute dark
+                .background(Color(0xFF050505)),
             contentAlignment = Alignment.Center
         ) {
-            // Background CRT Scanline Effect
             ScanlineOverlay()
 
             Column(
@@ -65,12 +60,12 @@ fun App() {
                         .width(220.dp)
                         .clickable { active = !active }
                         .drawBehind {
-                            val strokeWidth = 2f
                             val brush = Brush.horizontalGradient(listOf(Color.Cyan, Color.Magenta, Color.Cyan))
-                            drawLine(brush, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth) // Top
-                            drawLine(brush, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth) // Right
-                            drawLine(brush, Offset(size.width, size.height), Offset(0f, size.height), strokeWidth) // Bottom
-                            drawLine(brush, Offset(0f, size.height), Offset(0f, 0f), strokeWidth) // Left
+                            val stroke = 4f
+                            drawLine(brush, Offset(0f, 0f), Offset(size.width, 0f), stroke)
+                            drawLine(brush, Offset(size.width, 0f), Offset(size.width, size.height), stroke)
+                            drawLine(brush, Offset(size.width, size.height), Offset(0f, size.height), stroke)
+                            drawLine(brush, Offset(0f, size.height), Offset(0f, 0f), stroke)
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -93,17 +88,13 @@ fun App() {
                     val greeting = remember { Greeting().greet() }
                     
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Glitching Logo
                         Box(contentAlignment = Alignment.Center) {
                             Image(
                                 painter = painterResource(Res.drawable.compose_multiplatform),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(120.dp)
-                                    .graphicsLayer {
-                                        translationX = glitchOffset * 2
-                                        alpha = 0.5f
-                                    },
+                                    .graphicsLayer { translationX = glitchOffset * 2; alpha = 0.5f },
                                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Magenta)
                             )
                             Image(
@@ -111,10 +102,7 @@ fun App() {
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(120.dp)
-                                    .graphicsLayer {
-                                        translationX = -glitchOffset * 2
-                                        alpha = 0.5f
-                                    },
+                                    .graphicsLayer { translationX = -glitchOffset * 2; alpha = 0.5f },
                                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Cyan)
                             )
                             Image(
@@ -135,14 +123,6 @@ fun App() {
                                 .background(Color.Cyan.copy(alpha = 0.1f))
                                 .padding(horizontal = 12.dp, vertical = 4.dp)
                         )
-                        
-                        Text(
-                            text = "SYSTEM_STATUS: STABLE",
-                            color = Color.Green.copy(alpha = 0.7f),
-                            fontSize = 10.sp,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
                     }
                 }
             }
@@ -160,28 +140,15 @@ fun ScanlineOverlay() {
     )
 
     Canvas(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = 0.1f }) {
-        val height = size.height
-        val width = size.width
-        
-        // Horizontal lines
-        for (i in 0..height.toInt() step 8) {
-            drawLine(
-                color = Color.White,
-                start = Offset(0f, i.toFloat()),
-                end = Offset(width, i.toFloat()),
-                strokeWidth = 1f
-            )
+        val h = size.height
+        val w = size.width
+        for (i in 0..h.toInt() step 8) {
+            drawLine(Color.White, Offset(0f, i.toFloat()), Offset(w, i.toFloat()), 1f)
         }
-        
-        // Moving scanning bar
         drawRect(
-            brush = Brush.verticalGradient(
-                0f to Color.Transparent,
-                0.5f to Color.Cyan,
-                1f to Color.Transparent
-            ),
-            topLeft = Offset(0f, height * linePos - 50f),
-            size = androidx.compose.ui.geometry.Size(width, 100f)
+            brush = Brush.verticalGradient(0f to Color.Transparent, 0.5f to Color.Cyan, 1f to Color.Transparent),
+            topLeft = Offset(0f, h * linePos - 50f),
+            size = androidx.compose.ui.geometry.Size(w, 100f)
         )
     }
 }
